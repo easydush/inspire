@@ -17,36 +17,45 @@ class User(AbstractUser):
     full name, biography, location (country. city) and date of birth
     """
     full_name = models.CharField(max_length=20, blank=True)
-    bio = models.TextField(max_length=500, blank=True)
-    location = models.CharField(max_length=30, blank=True)
+    bio = models.TextField(max_length=500, blank=True, null=True)
+    location = models.CharField(max_length=30, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
 
 
 class Photographer(User):
     """ This is an extension for extended User """
-    pass
+
+    def __str__(self):
+        return 'Photographer'
 
 
 class MakeUpArtist(User):
     """ This is an extension for extended User """
-    pass
+
+    def __str__(self):
+        return 'Make up artist'
 
 
 class Stylist(User):
     """ This is an extension for extended User """
-    pass
+
+    def __str__(self):
+        return 'Stylist'
 
 
 class SuperModel(User):
     """ This is an extension for extended User """
-    pass
+
+    def __str__(self):
+        return 'Model'
 
 
 class Photo(models.Model):
     """ This is the one of the main models that will be shown in main app.
      It has model, photographer, make up artist and stylist like a real-world work
       on Instagram or other beauty blogs """
+    photo = models.ImageField(upload_to='inspire/photos', blank=True, default='')
     super_models = models.ManyToManyField(SuperModel)
     photographer = models.ForeignKey(Photographer, on_delete=models.CASCADE)
     make_up_artist = models.ForeignKey(MakeUpArtist, on_delete=models.CASCADE)
@@ -90,7 +99,7 @@ class Cloth(Item):
         (UNIVERSAL, 'any season'),
     ]
     season = models.CharField(
-        max_length=2,
+        max_length=20,
         choices=SEASON_CHOICES,
         default=UNIVERSAL,
     )
@@ -142,14 +151,3 @@ class Portfolio(models.Model):
 
     def __str__(self):
         return f'{self.owner.username}\'s Portfolio'
-
-
-class Post(models.Model):
-    """ This a post that contains and presents user's work"""
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=20)
-    text = models.TextField()
-    published_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
-
-    def __str__(self):
-        return self.title
