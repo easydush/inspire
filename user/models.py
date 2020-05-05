@@ -8,8 +8,11 @@ class Company(models.Model):
     """ This is an user's unnecessary field.
      May be used for company's ambassadors, for example, Max Factor's artist
     """
-    title = models.CharField(max_length=30, blank=True)
+    title = models.CharField(max_length=30, blank=True, unique=True)
     location = models.CharField(max_length=30, blank=True)
+
+    class Meta:
+        db_table = 'company'
 
 
 class User(AbstractUser):
@@ -29,12 +32,18 @@ class Photographer(User):
     def __str__(self):
         return 'Photographer'
 
+    class Meta:
+        db_table = 'photographer'
+
 
 class MakeUpArtist(User):
     """ This is an extension for extended User """
 
     def __str__(self):
         return 'Make up artist'
+
+    class Meta:
+        db_table = 'make_up_artist'
 
 
 class Stylist(User):
@@ -43,12 +52,18 @@ class Stylist(User):
     def __str__(self):
         return 'Stylist'
 
+    class Meta:
+        db_table = 'stylist'
+
 
 class SuperModel(User):
     """ This is an extension for extended User """
 
     def __str__(self):
         return 'Model'
+
+    class Meta:
+        db_table = 'supermodel'
 
 
 class Photo(models.Model):
@@ -61,6 +76,9 @@ class Photo(models.Model):
     make_up_artist = models.ForeignKey(MakeUpArtist, on_delete=models.CASCADE)
     stylist = models.ForeignKey(Stylist, on_delete=models.CASCADE)
 
+    class Meta:
+        db_table = 'photo'
+
 
 class Item(models.Model):
     """ Attribute for someone's work"""
@@ -70,15 +88,24 @@ class Item(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name', 'brand']
+
 
 class Camera(Item):
     """ Additional attribute for Photographer """
     article = models.CharField(max_length=20, blank=True)
 
+    class Meta:
+        db_table = 'camera'
+
 
 class BeautyTip(Item):
     """ Additional attribute for Make Up Artist """
     colour = models.CharField(max_length=20, blank=True)
+
+    class Meta:
+        db_table = 'beautytip'
 
 
 class Cloth(Item):
@@ -104,6 +131,9 @@ class Cloth(Item):
         default=UNIVERSAL,
     )
 
+    class Meta:
+        db_table = 'cloth'
+
 
 class Work(models.Model):
     """ This is an album of photos for users' portfolios
@@ -114,6 +144,9 @@ class Work(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        ordering = ['title']
+
 
 class PhotographerWork(Work):
     """ This is an extension of work for Photographer.
@@ -122,6 +155,9 @@ class PhotographerWork(Work):
     owner = models.ForeignKey(Photographer, on_delete=models.CASCADE)
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE)
 
+    class Meta:
+        db_table = 'photographer_work'
+
 
 class StylistWork(Work):
     """ This is an extension of work for Stylist."""
@@ -129,11 +165,17 @@ class StylistWork(Work):
     style = models.CharField(max_length=15, blank=True)
     items = models.ManyToManyField(Item)
 
+    class Meta:
+        db_table = 'stylist_work'
+
 
 class MakeUpWork(Work):
     """ This is an extension of work for Make Up artist."""
     owner = models.ForeignKey(MakeUpArtist, on_delete=models.CASCADE)
     beauty_tips = models.ManyToManyField(BeautyTip)
+
+    class Meta:
+        db_table = 'makeup'
 
 
 class ModelWork(Work):
@@ -141,6 +183,9 @@ class ModelWork(Work):
     owner = models.ForeignKey(SuperModel, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     location = models.CharField(max_length=30, blank=True)
+
+    class Meta:
+        db_table = 'model_work'
 
 
 class Portfolio(models.Model):
@@ -151,3 +196,6 @@ class Portfolio(models.Model):
 
     def __str__(self):
         return f'{self.owner.username}\'s Portfolio'
+
+    class Meta:
+        db_table = 'portfolio'
