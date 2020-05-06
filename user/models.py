@@ -1,7 +1,7 @@
 from django.conf import settings
+from django.db.models import F
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
 
 
 class Company(models.Model):
@@ -13,57 +13,55 @@ class Company(models.Model):
 
     class Meta:
         db_table = 'company'
+        ordering = ['title']
 
 
 class User(AbstractUser):
     """ Extension of AbstractUser for adding new fields such as:
-    full name, biography, location (country. city) and date of birth
+    full name, biography, location (country, city) and date of birth
     """
+    profile_photo = models.ImageField(upload_to='inspire/photos/profiles', blank=True, default='', null=True)
+
     full_name = models.CharField(max_length=20, blank=True)
     bio = models.TextField(max_length=500, blank=True, null=True)
     location = models.CharField(max_length=30, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
+    blog_url = models.URLField(verbose_name="blog url", blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.username}'
 
 
 class Photographer(User):
     """ This is an extension for extended User """
 
-    def __str__(self):
-        return 'Photographer'
-
     class Meta:
         db_table = 'photographer'
+        verbose_name = 'photographer'
 
 
 class MakeUpArtist(User):
     """ This is an extension for extended User """
 
-    def __str__(self):
-        return 'Make up artist'
-
     class Meta:
-        db_table = 'make_up_artist'
+        verbose_name = db_table = 'make_up_artist'
 
 
 class Stylist(User):
     """ This is an extension for extended User """
 
-    def __str__(self):
-        return 'Stylist'
-
     class Meta:
-        db_table = 'stylist'
+        verbose_name = db_table = 'stylist'
 
 
 class SuperModel(User):
     """ This is an extension for extended User """
-
-    def __str__(self):
-        return 'Model'
+    height = models.PositiveSmallIntegerField()
+    weight = models.PositiveSmallIntegerField()
 
     class Meta:
-        db_table = 'supermodel'
+        verbose_name = db_table = 'supermodel'
 
 
 class Photo(models.Model):
@@ -152,7 +150,7 @@ class PhotographerWork(Work):
     """ This is an extension of work for Photographer.
     It may be important to select a camera.
     """
-    owner = models.ForeignKey(Photographer, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE)
 
     class Meta:
@@ -161,7 +159,7 @@ class PhotographerWork(Work):
 
 class StylistWork(Work):
     """ This is an extension of work for Stylist."""
-    owner = models.ForeignKey(Stylist, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     style = models.CharField(max_length=15, blank=True)
     items = models.ManyToManyField(Item)
 
@@ -171,7 +169,7 @@ class StylistWork(Work):
 
 class MakeUpWork(Work):
     """ This is an extension of work for Make Up artist."""
-    owner = models.ForeignKey(MakeUpArtist, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     beauty_tips = models.ManyToManyField(BeautyTip)
 
     class Meta:
@@ -180,7 +178,7 @@ class MakeUpWork(Work):
 
 class ModelWork(Work):
     """ This is an extension of work for Model."""
-    owner = models.ForeignKey(SuperModel, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     location = models.CharField(max_length=30, blank=True)
 
@@ -192,7 +190,7 @@ class Portfolio(models.Model):
     """ This is a collection of user's works, something like posts in blog,
      they may be used as a content for profile posts in future"""
     works = models.ManyToManyField(Work)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.owner.username}\'s Portfolio'
