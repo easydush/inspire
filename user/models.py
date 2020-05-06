@@ -16,52 +16,29 @@ class Company(models.Model):
         ordering = ['title']
 
 
+class Role(models.Model):
+    id = models.PositiveSmallIntegerField(primary_key=True)
+    title = models.SlugField()
+
+    def __str__(self):
+        return f'{self.title}'
+
+
 class User(AbstractUser):
     """ Extension of AbstractUser for adding new fields such as:
     full name, biography, location (country, city) and date of birth
     """
     profile_photo = models.ImageField(upload_to='inspire/photos/profiles', blank=True, default='', null=True)
-
-    full_name = models.CharField(max_length=20, blank=True)
     bio = models.TextField(max_length=500, blank=True, null=True)
     location = models.CharField(max_length=30, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
     blog_url = models.URLField(verbose_name="blog url", blank=True, null=True)
 
+    role = models.ManyToManyField(Role)
+
     def __str__(self):
         return f'{self.username}'
-
-
-class Photographer(User):
-    """ This is an extension for extended User """
-
-    class Meta:
-        db_table = 'photographer'
-        verbose_name = 'photographer'
-
-
-class MakeUpArtist(User):
-    """ This is an extension for extended User """
-
-    class Meta:
-        verbose_name = db_table = 'make_up_artist'
-
-
-class Stylist(User):
-    """ This is an extension for extended User """
-
-    class Meta:
-        verbose_name = db_table = 'stylist'
-
-
-class SuperModel(User):
-    """ This is an extension for extended User """
-    height = models.PositiveSmallIntegerField()
-    weight = models.PositiveSmallIntegerField()
-
-    class Meta:
-        verbose_name = db_table = 'supermodel'
 
 
 class Photo(models.Model):
@@ -69,10 +46,10 @@ class Photo(models.Model):
      It has model, photographer, make up artist and stylist like a real-world work
       on Instagram or other beauty blogs """
     photo = models.ImageField(upload_to='inspire/photos', blank=True, default='')
-    super_models = models.ManyToManyField(SuperModel)
-    photographer = models.ForeignKey(Photographer, on_delete=models.CASCADE)
-    make_up_artist = models.ForeignKey(MakeUpArtist, on_delete=models.CASCADE)
-    stylist = models.ForeignKey(Stylist, on_delete=models.CASCADE)
+    super_models = models.ManyToManyField(User)
+    photographer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photographer')
+    make_up_artist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='makeupartist')
+    stylist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stylist')
 
     class Meta:
         db_table = 'photo'

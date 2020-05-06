@@ -10,7 +10,7 @@ from user.forms import PhotoForm
 
 class AddPhotoView(View):
     def get(self, request):
-        return render(request, 'user/photo_edit.html', {'form': PhotoForm(), 'form_name': 'Add new photo'})
+        return render(request, 'user/forms.html', {'form': PhotoForm(), 'form_name': 'Add new photo'})
 
     def post(self, request):
         form = PhotoForm(request.POST)
@@ -18,4 +18,4 @@ class AddPhotoView(View):
             photo = form.save()
             return redirect(reverse('photo_new'))
 
-        return render(request, 'user/photo_edit.html', {'form': form, 'form_name': 'Add new photo'})
+        return render(request, 'user/forms.html', {'form': form, 'form_name': 'Add new photo'})
