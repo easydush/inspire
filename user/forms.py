@@ -5,21 +5,6 @@ from .models import ModelWork, PhotographerWork, Photo, BeautyTip, Camera, Item,
     User
 
 
-class CreativeUserForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ('username', 'password1', 'password2',
-                  'first_name', 'last_name', 'email',
-                  'role', 'birth_date', 'profile_photo', 'bio',
-                  'location', 'birth_date', 'company', 'blog_url')
-
-
-class CreativeUserChange(UserChangeForm):
-    class Meta:
-        model = User
-        fields = ('profile_photo', 'bio', 'location', 'birth_date',
-                  'company', 'blog_url')
-
 
 class PhotoForm(forms.ModelForm):
     class Meta:

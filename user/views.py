@@ -1,15 +1,17 @@
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.exceptions import ValidationError
 from django.shortcuts import render
 
 from django.shortcuts import render, redirect, reverse
 from django.template import context
 
-from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.views import View, generic
 
 # Create your views here.
 from user.forms import PhotoForm
-from user.models import Role
 
 
 class AddPhotoView(LoginRequiredMixin, generic.FormView):
@@ -32,33 +34,21 @@ class AddPhotoView(LoginRequiredMixin, generic.FormView):
     #    return render(request, 'user/forms.html', {'form': form, 'form_name': 'Add new photo'})
 
 
-class ModelAccessMixin(AccessMixin):
-    def dispatch(self, request, *args, **kwargs):
-        role = Role.objects.get(title='Model')
-        if not request.user.is_authenticated and role not in request.user.role:
-            return self.handle_no_permission()
-        return super().dispatch(request, *args, **kwargs)
+class AddPhotographerWorkView(LoginRequiredMixin, UserPassesTestMixin, generic.FormView):
+    def test_func(self):
+        return 'Photographer' in self.request.user.role.title
 
 
-class VisagistAccessMixin(AccessMixin):
-    def dispatch(self, request, *args, **kwargs):
-        role = Role.objects.get(title='Visagist')
-        if not request.user.is_authenticated and role not in request.user.role:
-            return self.handle_no_permission()
-        return super().dispatch(request, *args, **kwargs)
+class AddModelWorkView(LoginRequiredMixin, UserPassesTestMixin, generic.FormView):
+    def test_func(self):
+        return 'Model' in self.request.user.role.title
 
 
-class StylistAccessMixin(AccessMixin):
-    def dispatch(self, request, *args, **kwargs):
-        role = Role.objects.get(title='Stylist')
-        if not request.user.is_authenticated and role not in request.user.role:
-            return self.handle_no_permission()
-        return super().dispatch(request, *args, **kwargs)
+class AddStylistWorkView(LoginRequiredMixin, UserPassesTestMixin, generic.FormView):
+    def test_func(self):
+        return 'Stylist' in self.request.user.role.title
 
 
-class PhotographAccessMixin(AccessMixin):
-    def dispatch(self, request, *args, **kwargs):
-        role = Role.objects.get(title='Photograph')
-        if not request.user.is_authenticated and role not in request.user.role:
-            return self.handle_no_permission()
-        return super().dispatch(request, *args, **kwargs)
+class AddVisagistWorkView(LoginRequiredMixin, UserPassesTestMixin, generic.FormView):
+    def test_func(self):
+        return 'Visagist' in self.request.user.role.title
