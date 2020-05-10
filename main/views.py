@@ -1,13 +1,14 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, reverse
 
 # Create your views here.
+from django.template import context
 from django.views import View
 
-from main.forms import CreativeUserForm
+from main.forms import CreativeUserForm, CreativeUserChangeForm
 
 
 def index(request):
@@ -18,6 +19,11 @@ def about(request):
     return render(request, 'about.html', {})
 
 
+def logout_view(request):
+    logout(request)
+    return redirect('index')
+
+
 class RegisterView(View):
     def get(self, request):
         return render(request, 'main/registration.html', {'form': CreativeUserForm()})
@@ -25,7 +31,8 @@ class RegisterView(View):
     def post(self, request):
         form = CreativeUserForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(True)
+            form.save_m2m()
             return redirect(reverse('login'))
 
         return render(request, 'main/registration.html', {'form': form})
@@ -35,7 +42,6 @@ class LoginView(View):
     def get(self, request):
         return render(request, 'main/login.html', {'form': AuthenticationForm})
 
-    # really low level
     def post(self, request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -67,8 +73,17 @@ class LoginView(View):
 
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request):
-        # surveys = Survey.objects.filter(created_by=request.user).all()
-        # assigned_surveys = SurveyAssignment.objects.filter(assigned_to=request.user).all()
+        return render(request, 'main/profile.html', {})
 
-        #
-        return render(request, 'user/profile.html', context)
+
+class ProfileChangeView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'main/profile_change.html', {'form': CreativeUserChangeForm()})
+
+    def post(self, request):
+        form = CreativeUserChangeForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            return redirect(reverse('profile'))
+
+        return render(request, 'main/profile_change.html', {'form': form})

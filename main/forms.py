@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
-from user.models import User
+from main.models import User
 
 
 class CreativeUserForm(UserCreationForm):
@@ -16,7 +16,7 @@ class CreativeUserForm(UserCreationForm):
                   'location', 'birth_date', 'company', 'blog_url')
 
 
-class CreativeUserChange(UserChangeForm):
+class CreativeUserChangeForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('profile_photo', 'bio', 'location', 'birth_date',

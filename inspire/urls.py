@@ -24,17 +24,18 @@ from user import views as uviews
 
 # main urls
 urlpatterns = [
-                  path('admin/', admin.site.urls),
-                  path('', views.index, name='index'),
-path('', views.about, name='about'),
-              ]
+    path('admin/', admin.site.urls),
+    path('', views.index, name='index'),
+    path('register/', views.RegisterView.as_view(), name='register'),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('logout/', views.logout_view, name='logout'),
+    path('', views.about, name='about'),
+]
 
 # user's urls
 urlpatterns += [
-                   path('register/', views.RegisterView.as_view(), name='register'),
-                   path('login/', views.LoginView.as_view(), name='login'),
-                   path('profile/', views.ProfileView.as_view(), name='profile'),
-                   path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-                   path('photo/new/', uviews.AddPhotoView.as_view(), name='photo_new'),
-               ]
+
+    path('photo/new/', uviews.AddPhotoView.as_view(), name='photo_new'),
+]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

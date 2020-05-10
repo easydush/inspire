@@ -1,51 +1,15 @@
 from django.conf import settings
 from django.db.models import F
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
-class Company(models.Model):
-    """ This is an user's unnecessary field.
-     May be used for company's ambassadors, for example, Max Factor's artist
-    """
-    title = models.CharField(max_length=30, blank=True, unique=True)
-    location = models.CharField(max_length=30, blank=True)
-
-    class Meta:
-        db_table = 'company'
-        ordering = ['title']
-
-
-class Role(models.Model):
-    id = models.PositiveSmallIntegerField(primary_key=True)
-    title = models.SlugField()
-
-    def __str__(self):
-        return f'{self.title}'
-
-
-class User(AbstractUser):
-    """ Extension of AbstractUser for adding new fields such as:
-    full name, biography, location (country, city) and date of birth
-    """
-    profile_photo = models.ImageField(upload_to='inspire/photos/profiles', blank=True, default='', null=True)
-    bio = models.TextField(max_length=500, blank=True, null=True)
-    location = models.CharField(max_length=30, blank=True, null=True)
-    birth_date = models.DateField(null=True, blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
-    blog_url = models.URLField(verbose_name="blog url", blank=True, null=True)
-
-    role = models.ManyToManyField(Role)
-
-    def __str__(self):
-        return f'{self.username}'
+from main.models import User, Company
 
 
 class Photo(models.Model):
     """ This is the one of the main models that will be shown in main app.
      It has model, photographer, make up artist and stylist like a real-world work
       on Instagram or other beauty blogs """
-    photo = models.ImageField(upload_to='inspire/photos', blank=True, default='')
+    photo = models.ImageField(upload_to='media/userprofiles/photos', blank=True, default='')
     super_models = models.ManyToManyField(User)
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photographer')
     make_up_artist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='makeupartist')

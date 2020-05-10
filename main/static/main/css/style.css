@@ -1,0 +1,48 @@
+.carousel {
+    height: 680px !important;
+}
+
+.carousel-inner img {
+    height: auto !important;
+    margin: 0 auto;
+}
+
+.social:hover {
+    -webkit-transform: scale(1.1);
+    -moz-transform: scale(1.1);
+    -o-transform: scale(1.1);
+}
+
+.social {
+    -webkit-transform: scale(0.8);
+    /* Browser Variations: */
+    color: darkcyan;
+    -moz-transform: scale(0.8);
+    -o-transform: scale(0.8);
+    -webkit-transition-duration: 0.5s;
+    -moz-transition-duration: 0.5s;
+    -o-transition-duration: 0.5s;
+}
+
+
+#social-vk:hover {
+    color: #3B5998;
+}
+
+#social-in:hover {
+    display: inline-block;
+    text-align: center;
+    border-radius: 40%;
+    color: #fff;
+    background: #d6249f;
+    background: radial-gradient(circle at 30% 100%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+
+}
+
+#social-git:hover {
+    color: black;
+}
+
+#social-em:hover {
+    color: #f39c12;
+}
