@@ -1,0 +1,3 @@
+venv/**
+inspire/settings.py
+inspire/dev.env

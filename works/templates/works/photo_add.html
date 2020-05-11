@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}
+    Add new photo
+{% endblock %}
+{% block content %}
+    {% load crispy_forms_tags %}
+
+    <div class="container " id="profile_change" style=" width: 50%">
+        <h3>Add new photo</h3>
+        <form method="POST" class="post-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary">Add photo</button>
+        </form>
+    </div>
+{% endblock %}

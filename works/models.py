@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db.models import F
 from django.db import models
+from django.urls import reverse
 
 from main.models import User, Company
 
@@ -9,11 +10,20 @@ class Photo(models.Model):
     """ This is the one of the main models that will be shown in main app.
      It has model, photographer, make up artist and stylist like a real-world work
       on Instagram or other beauty blogs """
-    photo = models.ImageField(upload_to='media/userprofiles/photos', blank=True, default='')
+    title = models.CharField(max_length=30, blank=True)
+    photo = models.ImageField(upload_to='userprofiles/photos', blank=True, default='media/userprofiles/photos/cat.jpg')
     super_models = models.ManyToManyField(User)
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photographer')
     make_up_artist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='makeupartist')
     stylist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stylist')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_by',
+                                   null=True)
+
+    def get_absolute_url(self):
+        return reverse('works:photo-detail', kwargs={'pk': self.pk})
+
+    def __str__(self):
+        return self.title +' '+self.created_by.username
 
     class Meta:
         db_table = 'photo'
@@ -128,7 +138,7 @@ class ModelWork(Work):
 
 
 class Portfolio(models.Model):
-    """ This is a collection of user's works, something like posts in blog,
+    """ This is a collection of works's works, something like posts in blog,
      they may be used as a content for profile posts in future"""
     works = models.ManyToManyField(Work)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

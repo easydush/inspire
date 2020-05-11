@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -19,9 +20,13 @@ def about(request):
     return render(request, 'about.html', {})
 
 
+def popular(request):
+    return render(request, 'popular.html', {})
+
+
 def logout_view(request):
     logout(request)
-    return redirect('index')
+    return redirect('main:index')
 
 
 class RegisterView(View):
@@ -29,7 +34,7 @@ class RegisterView(View):
         return render(request, 'main/registration.html', {'form': CreativeUserForm()})
 
     def post(self, request):
-        form = CreativeUserForm(request.POST)
+        form = CreativeUserForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(True)
             form.save_m2m()
@@ -68,7 +73,7 @@ class LoginView(View):
                 )
             login(request, user)
 
-            return redirect(reverse('profile'))
+            return redirect(reverse('main:profile'))
 
 
 class ProfileView(LoginRequiredMixin, View):
@@ -78,12 +83,12 @@ class ProfileView(LoginRequiredMixin, View):
 
 class ProfileChangeView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'main/profile_change.html', {'form': CreativeUserChangeForm()})
+        return render(request, 'main/profile_edit.html', {'form': CreativeUserChangeForm(instance=request.user)})
 
     def post(self, request):
-        form = CreativeUserChangeForm(request.POST)
+        form = CreativeUserChangeForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             user = form.save()
-            return redirect(reverse('profile'))
+            return redirect(reverse('main:profile'))
 
-        return render(request, 'main/profile_change.html', {'form': form})
+        return render(request, 'main/profile_edit.html', {'form': form})

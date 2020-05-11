@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}
+    Add new photo
+{% endblock %}
+{% block add_style %}
+    <style type="text/css">
+        #self_photo {
+            max-width: 500px;
+            max-height: 500px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class='container border border-warning text-dark'>
+        <div class='row justify-content-md-center'>
+            <div class="col">
+                <h5>{{ photo.title }}</h5>
+                {% if photo.super_models.all %}
+                    <h5>Models:</h5>
+                {% endif %}
+                {% for model in photo.super_models.all %}
+                    <li>{{ model.username }}</li>
+                {% endfor %}
+                <br>
+
+                {% if photo.photographer %}
+                    <h5>Photographer:</h5>
+                    <li>{{ photo.photographer }}</li>
+                {% endif %}
+                <br>
+
+                {% if photo.stylist %}
+                    <h5>Stylist:</h5>
+                    <li>{{ photo.stylist }}</li>
+                {% endif %}
+                <br>
+
+                {% if photo.make_up_artist %}
+                    <h5>Visagist:</h5>
+                    <li>{{ photo.make_up_artist }}</li>
+                {% endif %}
+
+                {% if user.get_username == photo.created_by.username %}
+
+                    <a class="btn btn-outline-success m-1" href="update">Update</a>
+                    <a class="btn btn-outline-primary" href="delete">Delete</a>
+                {% endif %}
+            </div>
+            <div class="col col-md-auto">{% if photo.photo %}
+                <p class="image"><img src="{{ photo.photo.url }}" id="self_photo" alt="photo"></p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

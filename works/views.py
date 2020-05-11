@@ -11,27 +11,41 @@ from django.urls import reverse_lazy
 from django.views import View, generic
 
 # Create your views here.
-from user.forms import PhotoForm
+from works.forms import PhotoForm
+from works.models import Photo
 
 
-class AddPhotoView(LoginRequiredMixin, generic.FormView):
+class PhotoCreateView(LoginRequiredMixin, generic.FormView):
     form_class = PhotoForm
-    template_name = 'user/forms.html'
-    success_url = reverse_lazy('user:forms')
+    template_name = 'works/photo_add.html'
+    success_url = reverse_lazy('works:photo-list')
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         form.save()
-        return super(AddPhotoView, self).form_valid(form)
-    # def get(self, request):
-    #    return render(request, 'user/forms.html', {'form': PhotoForm(), 'form_name': 'Add new photo'})
+        form.save_m2m()
+        return super(PhotoCreateView, self).form_valid(form)
 
-    # def post(self, request):
-    #    form = PhotoForm(request.POST)
-    #    if form.is_valid():
-    #        photo = form.save()
-    #        return redirect(reverse('photo_new'))
-    #    return render(request, 'user/forms.html', {'form': form, 'form_name': 'Add new photo'})
+
+class PhotoListView(generic.ListView):
+    model = Photo
+    context_object_name = 'photos'
+
+
+class PhotoDetailView(generic.DetailView):
+    model = Photo
+
+
+class PhotoUpdateView(generic.UpdateView):
+    model = Photo
+    fields = ['title', 'photo' ,'super_models', 'photographer', 'stylist', 'make_up_artist']
+    template_name = 'works/photo_update.html'
+
+
+class PhotoDelete(generic.DeleteView):
+    model = Photo
+    success_url = reverse_lazy('works:photo-list')
+    template_name = 'works/photo_delete.html'
 
 
 class AddPhotographerWorkView(LoginRequiredMixin, UserPassesTestMixin, generic.FormView):

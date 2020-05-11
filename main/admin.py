@@ -15,4 +15,4 @@ class CreativeUserAdmin(UserAdmin):
     add_form = CreativeUserForm
     form = CreativeUserChangeForm
     model = User
-    list_display = ['email', 'username', 'first_name', 'last_name']
+    list_display = ['email', 'username', 'first_name', 'last_name', 'bio', 'profile_photo']
