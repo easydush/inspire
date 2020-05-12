@@ -13,9 +13,11 @@ class Company(models.Model):
     location = models.CharField(max_length=30, blank=True)
 
     def __str__(self):
-        return f'{self.title}'
+        return self.title
 
     class Meta:
+        verbose_name_plural = 'companies'
+        verbose_name = 'company'
         db_table = 'company'
         ordering = ['title']
 
@@ -46,12 +48,12 @@ class User(AbstractUser):
         return f'{self.username}'
 
 
-class Post(models.Model):
-    """ This a post that contains and presents works's work"""
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=20)
-    text = models.TextField()
-    published_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
-
-    def __str__(self):
-        return self.title
+# class Post(models.Model):
+#     """ This a post that contains and presents works's work"""
+#     author = models.ForeignKey(User, on_delete=models.CASCADE)
+#     title = models.CharField(max_length=20)
+#     text = models.TextField()
+#     published_date = models.DateTimeField(default=timezone.now, blank=True, null=True)
+#
+#     def __str__(self):
+#         return self.title

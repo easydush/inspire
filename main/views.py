@@ -8,8 +8,16 @@ from django.shortcuts import render, redirect, reverse
 # Create your views here.
 from django.template import context
 from django.views import View
+from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404, GenericAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.mixins import ListModelMixin
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from main.forms import CreativeUserForm, CreativeUserChangeForm
+from main.models import Company
+from main.serializers import CompanySerializer
 
 
 def index(request):
@@ -18,10 +26,6 @@ def index(request):
 
 def about(request):
     return render(request, 'about.html', {})
-
-
-def popular(request):
-    return render(request, 'popular.html', {})
 
 
 def logout_view(request):
@@ -92,3 +96,13 @@ class ProfileChangeView(LoginRequiredMixin, View):
             return redirect(reverse('main:profile'))
 
         return render(request, 'main/profile_edit.html', {'form': form})
+
+
+class CompanyView(ListCreateAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+
+
+class SingleCompanyView(RetrieveUpdateDestroyAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
