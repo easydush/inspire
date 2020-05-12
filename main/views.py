@@ -3,15 +3,17 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.http import response
 from django.shortcuts import render, redirect, reverse
 
 # Create your views here.
 from django.template import context
 from django.views import View
 from rest_framework import viewsets
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.generics import get_object_or_404, GenericAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.mixins import ListModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -98,11 +100,31 @@ class ProfileChangeView(LoginRequiredMixin, View):
         return render(request, 'main/profile_edit.html', {'form': form})
 
 
-class CompanyView(ListCreateAPIView):
+# class CompanyView(ListCreateAPIView):
+#     queryset = Company.objects.all()
+#     serializer_class = CompanySerializer
+#
+
+class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser]
 
-class SingleCompanyView(RetrieveUpdateDestroyAPIView):
-    queryset = Company.objects.all()
-    serializer_class = CompanySerializer
+        return [permission() for permission in permission_classes]
+
+
+# def customhandler404(request, exception, template_name='404.html'):
+#     response = render(request, template_name)
+#     response.status_code = 404
+#     return response
+#
+#
+# def customhandler500(request, template_name='500.html'):
+#     response = render(request, template_name)
+#     response.status_code = 500
+#     return response
