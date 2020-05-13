@@ -1,137 +1,227 @@
-from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
-from django.views import View, generic
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
+from django.db.models import Max, Min, F, Q
+from django.http import response
+from django.shortcuts import render, redirect, reverse
 
 # Create your views here.
-from works.forms import PhotoForm, ItemForm, ModelWorkForm, PhotographerWorkForm, StylistWorkForm, MakeUpWorkForm
-from works.models import Photo, Item, StylistWork, ModelWork, PhotographerWork, MakeUpWork
+from django.template import context
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import FormView, TemplateView
+from rest_framework import viewsets
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.generics import get_object_or_404, GenericAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.mixins import ListModelMixin
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from inspire import settings
+from main.forms import CreativeUserForm, CreativeUserChangeForm, PasswordResetForm, PasswordResetRequestForm
+from main.models import Company, User
+from main.serializers import CompanySerializer
+from main.models import UserToken
+
+from main.tasks import send_email_task
+from works.models import StylistWork, PhotographerWork, MakeUpWork, ModelWork, Item
 
 
-class PhotoCreateView(LoginRequiredMixin, generic.FormView):
-    form_class = PhotoForm
-    template_name = 'works/photo_add.html'
-    success_url = reverse_lazy('works:photo-list')
-
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        user = form.save(commit=False)
-        form.save_m2m()
-
-        return super(PhotoCreateView, self).form_valid(form)
+def index(request):
+    return render(request, 'index.html', {})
 
 
-class PhotoListView(generic.ListView):
-    model = Photo
-    context_object_name = 'photos'
+def about(request):
+    stw_count = StylistWork.objects.count()
+    phw_count = PhotographerWork.objects.count()
+    mkw_count = MakeUpWork.objects.count()
+    mdw_count = ModelWork.objects.count()
+    items_count = Item.objects.count()
+    max_price = Item.objects.aggregate(Max('price')).get('price__max')
+    min_price = Item.objects.aggregate(Min('price')).get('price__min')
+    gtid = Item.objects.filter(price__gte=F('id')).all()
+    itis = Company.objects.filter(Q(location__icontains='Kazan') | Q(location__endswith='Japan'))
+    return render(request, 'about.html', {'mdw': mdw_count,
+                                          'mkw': mkw_count,
+                                          'phw': phw_count,
+                                          'stw': stw_count,
+                                          'items': items_count,
+                                          'max_p': max_price,
+                                          'min_p': min_price,
+                                          'gtid': [_.name for _ in gtid],
+                                          'itis': [_.title for _ in itis]})
 
 
-class PhotoDetailView(generic.DetailView):
-    model = Photo
+def logout_view(request):
+    logout(request)
+    return redirect('main:index')
 
 
-class PhotoUpdateView(generic.UpdateView):
-    model = Photo
-    fields = ['title', 'photo', 'super_models', 'photographer', 'stylist', 'make_up_artist']
-    template_name = 'works/photo_update.html'
+def error_500(request):
+    return render(request, '500.html', {})
 
 
-class PhotoDelete(generic.DeleteView):
-    model = Photo
-    success_url = reverse_lazy('works:photo-list')
-    template_name = 'works/photo_delete.html'
+class RegisterView(View):
+    def get(self, request):
+        return render(request, 'main/registration.html', {'form': CreativeUserForm()})
+
+    def post(self, request):
+        form = CreativeUserForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(True)
+            form.save_m2m()
+            return redirect(reverse('main:login'))
+
+        return render(request, 'main/registration.html', {'form': form})
 
 
-class AddPhotographerWorkView(LoginRequiredMixin, generic.FormView):
-    form_class = PhotographerWorkForm
-    template_name = 'works/work_add.html'
-    success_url = reverse_lazy('works:photographerwork-list')
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'main/login.html', {'form': AuthenticationForm})
 
-    def form_valid(self, form):
-        user = form.save(commit=False)
-        form.save_m2m()
-        return super(AddPhotographerWorkView, self).form_valid(form)
+    def post(self, request):
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = authenticate(
+                request,
+                username=form.cleaned_data.get('username'),
+                password=form.cleaned_data.get('password')
+            )
 
+            if user is None:
+                return render(
+                    request,
+                    'main/login.html',
+                    {'form': form, 'invalid_creds': True}
+                )
 
-class AddModelWorkView(LoginRequiredMixin, generic.FormView):
-    form_class = ModelWorkForm
-    template_name = 'works/work_add.html'
-    success_url = reverse_lazy('works:modelwork-list')
+            try:
+                form.confirm_login_allowed(user)
+            except ValidationError:
+                return render(
+                    request,
+                    'main/login.html',
+                    {'form': form, 'invalid_creds': True}
+                )
+            login(request, user)
 
-    def form_valid(self, form):
-        user = form.save(commit=False)
-        form.save_m2m()
-        return super(AddModelWorkView, self).form_valid(form)
-
-
-class AddStylistWorkView(LoginRequiredMixin, generic.FormView):
-    form_class = StylistWorkForm
-    template_name = 'works/work_add.html'
-    success_url = reverse_lazy('works:stylistwork-list')
-
-    def form_valid(self, form):
-        user = form.save(commit=False)
-        form.save_m2m()
-        return super(AddStylistWorkView, self).form_valid(form)
-
-
-class AddVisagistWorkView(LoginRequiredMixin, generic.FormView):
-    form_class = MakeUpWorkForm
-    template_name = 'works/work_add.html'
-    success_url = reverse_lazy('works:makeupwork-list')
-
-    def form_valid(self, form):
-        user = form.save(commit=False)
-        form.save_m2m()
-        return super(AddVisagistWorkView, self).form_valid(form)
+            return redirect(reverse('main:profile'))
 
 
-class StylistWorksView(LoginRequiredMixin, generic.ListView):
-    model = StylistWork
-    context_object_name = 'works'
+class ProfileView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'main/profile.html', {})
 
 
-class MakeUpWorksView(LoginRequiredMixin, generic.ListView):
-    model = MakeUpWork
-    context_object_name = 'works'
+class ProfileChangeView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'main/profile_edit.html', {'form': CreativeUserChangeForm(instance=request.user)})
+
+    def post(self, request):
+        form = CreativeUserChangeForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            user = form.save()
+            return redirect(reverse('main:profile'))
+
+        return render(request, 'main/profile_edit.html', {'form': form})
 
 
-class ModelWorksView(LoginRequiredMixin, generic.ListView):
-    model = ModelWork
-    context_object_name = 'works'
+# class CompanyView(ListCreateAPIView):
+#     queryset = Company.objects.all()
+#     serializer_class = CompanySerializer
+#
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser]
+
+        return [permission() for permission in permission_classes]
 
 
-class PhotographerWorksView(LoginRequiredMixin, generic.ListView):
-    model = PhotographerWork
-    context_object_name = 'works'
+# def customhandler404(request, exception, template_name='404.html'):
+#     response = render(request, template_name)
+#     response.status_code = 404
+#     return response
+#
+#
+# def customhandler500(request, template_name='500.html'):
+#     response = render(request, template_name)
+#     response.status_code = 500
+#     return response
+
+class ResetPasswordRequestView(FormView):
+    template_name = 'main/reset.html'
+    form_class = PasswordResetRequestForm
+    success_url = reverse_lazy('main:reset_redirect_message')
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data["email"]
+            user = User.objects.get(email=data)
+            token_raw = default_token_generator.make_token(user)
+            UserToken.objects.create(user=user, token=token_raw)
+            reset_password_link = str('http://localhost:8000') + reverse('main:reset',
+                                                                         kwargs={
+                                                                             'username': user.username,
+                                                                             'token': token_raw
+                                                                         }
+                                                                         )
+
+            send_email_task.delay(
+                subject='Reset password',
+                to_email=user.email,
+                from_email=settings.EMAIL_HOST_USER,
+                template='main/reset_message.html',
+                args={'url': reset_password_link}
+            )
+        return self.form_valid(form)
 
 
-class ItemCreateView(LoginRequiredMixin, generic.FormView):
-    form_class = ItemForm
-    template_name = 'works/item_add.html'
-    success_url = reverse_lazy('works:item-list')
+class UserResetPasswordAccessMixin(AccessMixin):
+    def dispatch(self, request, *args, **kwargs):
+        username = kwargs['username']
+        user = User.objects.get(username=username)
+        token = kwargs['token']
+        try:
+            UserToken.objects.get(user=user, token=token)
+        except UserToken.DoesNotExist:
+            return self.handle_no_permission()
 
-    def form_valid(self, form):
-        form.save()
-        return super(ItemCreateView, self).form_valid(form)
-
-
-class ItemListView(generic.ListView):
-    model = Item
-    context_object_name = 'items'
+        return super().dispatch(request, *args, **kwargs)
 
 
-class ItemDetailView(generic.DetailView):
-    model = Item
+class ResetPasswordView(UserResetPasswordAccessMixin, FormView):
+    form_class = PasswordResetForm
+    template_name = 'main/reset_conf.html'
+    success_url = reverse_lazy('main:login')
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data["password"]
+            username = kwargs['username']
+            token = kwargs['token']
+            user_token = UserToken.objects.get(user__username=username, token=token)
+
+            user = user_token.user
+            user.set_password(data)
+            user.save()
+
+            user_token.delete()
+
+        return self.form_valid(form)
 
 
-class ItemUpdateView(generic.UpdateView):
-    model = Item
-    fields = '__all__'
-    template_name = 'works/item_update.html'
-
-
-class ItemDelete(generic.DeleteView):
-    model = Item
-    success_url = reverse_lazy('works:item-list')
-    template_name = 'works/item_delete.html'
+class MessageSentView(TemplateView):
+    template_name = 'main/message_sent.html'
