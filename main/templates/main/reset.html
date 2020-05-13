@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+    Reset password
+{% endblock %}
+{% load static %}
+{% block content %}
+    {% load crispy_forms_tags %}
+    <div class="container" style="width: 50%">
+        <form method="post">
+            {% csrf_token %}
+            {% crispy form %}
+        </form>
+    </div>
+
+{% endblock %}

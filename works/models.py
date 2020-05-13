@@ -23,7 +23,7 @@ class Photo(models.Model):
         return reverse('works:photo-detail', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return self.title +' '+self.created_by.username
+        return self.title + ' ' + self.created_by.username
 
     class Meta:
         db_table = 'photo'
@@ -137,14 +137,14 @@ class ModelWork(Work):
         db_table = 'model_work'
 
 
-class Portfolio(models.Model):
-    """ This is a collection of works's works, something like posts in blog,
-     they may be used as a content for profile posts in future"""
-    works = models.ManyToManyField(Work)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.owner.username}\'s Portfolio'
-
-    class Meta:
-        db_table = 'portfolio'
+# class Portfolio(models.Model):
+#     """ This is a collection of works's works, something like posts in blog,
+#      they may be used as a content for profile posts in future"""
+#     works = models.ManyToManyField(Work)
+#     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return f'{self.owner.username}\'s Portfolio'
+#
+#     class Meta:
+#         db_table = 'portfolio'

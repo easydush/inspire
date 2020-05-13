@@ -1,14 +1,17 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.http import response
 from django.shortcuts import render, redirect, reverse
 
 # Create your views here.
 from django.template import context
+from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic import FormView, TemplateView
 from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.generics import get_object_or_404, GenericAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
@@ -17,9 +20,13 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from main.forms import CreativeUserForm, CreativeUserChangeForm
-from main.models import Company
+from inspire import settings
+from main.forms import CreativeUserForm, CreativeUserChangeForm, PasswordResetForm, PasswordResetRequestForm
+from main.models import Company, User
 from main.serializers import CompanySerializer
+from main.models import UserToken
+
+from main.tasks import send_email_task
 
 
 def index(request):
@@ -33,6 +40,10 @@ def about(request):
 def logout_view(request):
     logout(request)
     return redirect('main:index')
+
+
+def error_500(request):
+    return render(request, '500.html', {})
 
 
 class RegisterView(View):
@@ -128,3 +139,70 @@ class CompanyViewSet(viewsets.ModelViewSet):
 #     response = render(request, template_name)
 #     response.status_code = 500
 #     return response
+
+class ResetPasswordRequestView(FormView):
+    template_name = 'main/reset.html'
+    form_class = PasswordResetRequestForm
+    success_url = reverse_lazy('main:reset_redirect_message')
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data["email"]
+            user = User.objects.get(email=data)
+            token_raw = default_token_generator.make_token(user)
+            UserToken.objects.create(user=user, token=token_raw)
+            reset_password_link = str('http://localhost:8000') + reverse('main:reset',
+                                                                         kwargs={
+                                                                             'username': user.username,
+                                                                             'token': token_raw
+                                                                         }
+                                                                         )
+
+            send_email_task.delay(
+                subject='Reset password',
+                to_email=user.email,
+                from_email=settings.EMAIL_HOST_USER,
+                template='main/reset_message.html',
+                args={'url': reset_password_link}
+            )
+        return self.form_valid(form)
+
+
+class UserResetPasswordAccessMixin(AccessMixin):
+    def dispatch(self, request, *args, **kwargs):
+        username = kwargs['username']
+        user = User.objects.get(username=username)
+        token = kwargs['token']
+        try:
+            UserToken.objects.get(user=user, token=token)
+        except UserToken.DoesNotExist:
+            return self.handle_no_permission()
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ResetPasswordView(UserResetPasswordAccessMixin, FormView):
+    form_class = PasswordResetForm
+    template_name = 'main/reset_conf.html'
+    success_url = reverse_lazy('main:login')
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data["password"]
+            username = kwargs['username']
+            token = kwargs['token']
+            user_token = UserToken.objects.get(user__username=username, token=token)
+
+            user = user_token.user
+            user.set_password(data)
+            user.save()
+
+            user_token.delete()
+
+        return self.form_valid(form)
+
+
+class MessageSentView(TemplateView):
+    template_name = 'main/message_sent.html'

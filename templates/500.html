@@ -2,12 +2,12 @@
 {% block title %}
     500/Something is wrong...
 {% endblock %}
-{% load static %}
 {% block content %}
-    <div class="container"  style="width: 50%">
+    {% load static %}
+    <div class="container" style="width: 50%">
         <h2>You are awesome!</h2>
         <h3>But something went wrong...</h3>
-    <img src="https://i.gifer.com/4HeV.gif" alt="sad cat">
+        <img src="https://i.gifer.com/4HeV.gif" alt="sad cat">
     </div>
 
 {% endblock %}

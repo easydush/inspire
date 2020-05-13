@@ -57,3 +57,7 @@ class User(AbstractUser):
 #
 #     def __str__(self):
 #         return self.title
+
+class UserToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=150)

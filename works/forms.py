@@ -1,8 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
-from .models import ModelWork, PhotographerWork, Photo, BeautyTip, Camera, Item, Cloth, Work, StylistWork, Portfolio, \
-    User
+from .models import ModelWork, PhotographerWork, Photo, BeautyTip, Camera, Item, Cloth, Work, StylistWork,User
 
 
 
@@ -54,7 +53,3 @@ class MakeUpWorkForm(forms.ModelForm):
         exclude = ['owner']
 
 
-class PortfolioForm(forms.ModelForm):
-    class Meta:
-        model = Portfolio
-        exclude = ['owner']
