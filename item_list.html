@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}
+    Add new photo
+{% endblock %}
+{% block add_style %}
+    <style type="text/css">
+        #self_photo {
+            max-width: 500px;
+            max-height: 500px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="row">
+            <a class="btn btn-outline-info m-1" href="create"
+               style="position: relative;left: 50%;transform: translate(-50%, 0);">Add new item</a>
+        </div>
+    {% endif %}
+    {% for item in items %}
+        <div class='container border border-warning text-dark'>
+            <div class='row justify-content-md-center'>
+                <div class="col">
+                    <a href="{{ item.id }}"><h5>{{ item.name }}</h5></a>
+                    <h5>Brand: {{ item.brand }}</h5>
+
+
+                    {% if item.article %}
+                        <h5>Article:</h5>
+                        <li>{{ item.article }}</li>
+                    {% endif %}
+                    <br>
+
+                    {% if item.colour %}
+                        <h5>Colour:</h5>
+                        <li>{{ item.colour }}</li>
+                    {% endif %}
+                    <br>
+
+                    {% if item.season %}
+                        <h5>Season:</h5>
+                        <li>{{ item.season }}</li>
+                    {% endif %}
+
+                </div>
+                {% comment %}<div class="col col-md-auto">{% if photo.photo %}
+                    <p class="image"><img src="{{ photo.photo.url }}" id="self_photo" alt="photo"></p>
+                {% endif %}
+                </div>{% endcomment %}
+
+                {% comment %}</div>{% endcomment %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

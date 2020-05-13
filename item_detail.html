@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}
+    Add new photo
+{% endblock %}
+{% block add_style %}
+    <style type="text/css">
+        #self_photo {
+            max-width: 500px;
+            max-height: 500px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class='container border border-warning text-dark'>
+        <div class='row justify-content-md-center'>
+            <div class="col">
+                <h3>{{ item.name }}</h3>
+                <h5>Brand: {{ item.brand }}</h5>
+
+
+                {% if item.article %}
+                    <h5>Article:</h5>
+                    <li>{{ item.article }}</li>
+                {% endif %}
+                <br>
+
+                {% if item.colour %}
+                    <h5>Colour:</h5>
+                    <li>{{ item.colour }}</li>
+                {% endif %}
+                <br>
+
+                {% if item.season %}
+                    <h5>Season:</h5>
+                    <li>{{ item.season }}</li>
+                {% endif %}
+
+                {% if item.price %}
+                    <h5>Price:</h5>
+                    <li>{{ item.price }}</li>
+                {% endif %}
+
+                {% if user.get_username == item.added_by.username %}
+
+                    <a class="btn btn-outline-success m-1" href="update">Update</a>
+                    <a class="btn btn-outline-primary" href="delete">Delete</a>
+                {% endif %}
+            </div>
+            {#            <div class="col col-md-auto">{% if item.photo %}#}
+            {#                <p class="image"><img src="{{ item.photo.url }}" id="self_photo" alt="photo"></p>#}
+            {#            {% endif %}#}
+            {#            </div>#}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}
+    Add new photo
+{% endblock %}
+{% block add_style %}
+    <style type="text/css">
+        #self_photo {
+            max-width: 500px;
+            max-height: 500px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="row">
+            <a class="btn btn-outline-info m-1" href="model/create"
+               style="position: relative;left: 50%;transform: translate(-50%, 0);">Add new work</a>
+        </div>
+    {% endif %}
+    {% for work in works %}
+        <div class='container border border-warning text-dark'>
+            <div class='row justify-content-md-center'>
+                <div class="col">
+                    <a href="{{ work.id }}"><h5>{{ work.title }}</h5></a>
+                    {% for photo in work.photos.all %}
+                        <p class="image"><img src="{{ photo.photo.url }}" id="self_photo" alt="photo"></p>
+                    {% endfor %}
+                    <br>
+
+{#                    {% if work.owner %}#}
+{#                        <h5>Owner:</h5>#}
+{#                        <li>{{ work.owner }}</li>#}
+{#                    {% endif %}#}
+                    <br>
+
+                </div>
+
+
+                {% comment %}</div>{% endcomment %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
