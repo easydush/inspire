@@ -1,8 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
-from .models import ModelWork, PhotographerWork, Photo, BeautyTip, Camera, Item, Cloth, Work, StylistWork,User
-
+from .models import ModelWork, PhotographerWork, Photo, Item, Work, StylistWork, User
 
 
 class PhotoForm(forms.ModelForm):
@@ -11,21 +10,9 @@ class PhotoForm(forms.ModelForm):
         fields = '__all__'
 
 
-class BeautyTipForm(forms.ModelForm):
+class ItemForm(forms.ModelForm):
     class Meta:
-        model = BeautyTip
-        fields = '__all__'
-
-
-class CameraForm(forms.ModelForm):
-    class Meta:
-        model = Camera
-        fields = '__all__'
-
-
-class ClothForm(forms.ModelForm):
-    class Meta:
-        model = Cloth
+        model = Item
         fields = '__all__'
 
 
@@ -51,5 +38,3 @@ class MakeUpWorkForm(forms.ModelForm):
     class Meta:
         model = ModelWork
         exclude = ['owner']
-
-
