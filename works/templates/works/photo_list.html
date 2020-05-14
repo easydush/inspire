@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}
-    Add new photo
+    Photos
 {% endblock %}
 {% block add_style %}
     <style type="text/css">
@@ -13,7 +13,8 @@
 {% block content %}
     {% if user.is_authenticated %}
         <div class="row">
-            <a class="btn btn-outline-info m-1" href="create" style="position: relative;left: 50%;transform: translate(-50%, 0);">Add new photo</a>
+            <a class="btn btn-outline-info m-1" href="create"
+               style="position: relative;left: 50%;transform: translate(-50%, 0);">Add new photo</a>
         </div>
     {% endif %}
     {% for photo in photos %}
@@ -21,10 +22,12 @@
             <div class='row justify-content-md-center'>
                 <div class="col">
                     <a href="{{ photo.id }}"><h5>{{ photo.title }}</h5></a>
-                    <h5>Models:</h5>
-                    {% if photo.super_models %}
-                        <li>{{ photo.super_models.name }}</li>
+                    {% if photo.super_models.all %}
+                        <h5>Models:</h5>
                     {% endif %}
+                    {% for model in photo.super_models.all %}
+                        <li>{{ model.username }}</li>
+                    {% endfor %}
                     <br>
 
                     {% if photo.photographer %}
