@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db.models import Max, Min, F, Q
 from django.http import response
 from django.shortcuts import render, redirect, reverse
 
@@ -27,6 +28,7 @@ from main.serializers import CompanySerializer
 from main.models import UserToken
 
 from main.tasks import send_email_task
+from works.models import StylistWork, PhotographerWork, MakeUpWork, ModelWork, Item
 
 
 def index(request):
@@ -34,7 +36,24 @@ def index(request):
 
 
 def about(request):
-    return render(request, 'about.html', {})
+    stw_count = StylistWork.objects.count()
+    phw_count = PhotographerWork.objects.count()
+    mkw_count = MakeUpWork.objects.count()
+    mdw_count = ModelWork.objects.count()
+    items_count = Item.objects.count()
+    max_price = Item.objects.aggregate(Max('price')).get('price__max')
+    min_price = Item.objects.aggregate(Min('price')).get('price__min')
+    gtid = Item.objects.filter(price__gte=F('id')).all()
+    itis = Company.objects.filter(Q(location__icontains='Kazan') | Q(location__endswith='Japan'))
+    return render(request, 'about.html', {'mdw': mdw_count,
+                                          'mkw': mkw_count,
+                                          'phw': phw_count,
+                                          'stw': stw_count,
+                                          'items': items_count,
+                                          'max_p': max_price,
+                                          'min_p': min_price,
+                                          'gtid': [_.name for _ in gtid],
+                                          'itis': [_.title for _ in itis]})
 
 
 def logout_view(request):
@@ -55,7 +74,7 @@ class RegisterView(View):
         if form.is_valid():
             user = form.save(True)
             form.save_m2m()
-            return redirect(reverse('login'))
+            return redirect(reverse('main:login'))
 
         return render(request, 'main/registration.html', {'form': form})
 
