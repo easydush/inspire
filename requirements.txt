@@ -11,7 +11,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 defusedxml==0.6.0
 distlib==0.3.0
-Django==3.1.13
+Django==3.1.14
 django-annoying==0.10.6
 django-appconf==1.0.4
 django-bootstrap4==1.1.1
